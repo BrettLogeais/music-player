@@ -7,26 +7,50 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
-import com.example.mymusicplayer.ui.HomeScreen
+import com.example.mymusicplayer.ui.MusicBar
+import com.example.mymusicplayer.ui.screens.HomeScreen
 import com.example.mymusicplayer.viewmodels.HomeVM
+import com.example.mymusicplayer.viewmodels.MusicBarVM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    val musicBarVM: MusicBarVM by viewModels()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -39,10 +63,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         launchPermissionRequest()
-        enableEdgeToEdge()
         setContent {
             AppTheme {
-                AppNavigation(this@MainActivity)
+                Scaffold(
+                    topBar = { NavBar() },
+                    bottomBar = { MusicBar(musicBarVM) }
+
+                ) { paddingValues ->
+                    AppNavigation(
+                        context = this@MainActivity,
+                        modifier = Modifier.padding(paddingValues = paddingValues)
+                    )
+                }
             }
         }
     }
@@ -69,8 +101,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation(context: Context) {
+fun AppNavigation(
+    context: Context,
+    modifier: Modifier = Modifier
+) {
     val navController = rememberNavController()
 
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -83,10 +119,10 @@ fun AppNavigation(context: Context) {
         }
     }
 
-
     NavHost(
         navController = navController,
-        startDestination = Home
+        startDestination = Home,
+        modifier = modifier
     ) {
         composable<Home> {
             val viewModel = hiltViewModel<HomeVM>()
@@ -107,6 +143,26 @@ fun AppNavigation(context: Context) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NavBar() {
+    TopAppBar(
+        title = {
+            Text(text = "Title")
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {  }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Menu,
+                    contentDescription = "Navigation Menu Button"
+                )
+            }
+        }
+    )
 }
 
 @Serializable

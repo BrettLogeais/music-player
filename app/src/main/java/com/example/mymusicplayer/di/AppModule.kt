@@ -1,7 +1,6 @@
 package com.example.mymusicplayer.di
 
-import android.content.Context
-import com.example.mymusicplayer.LoadingState
+import android.media.MediaPlayer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -14,7 +13,7 @@ class AppModule {
 
     @Provides
     @Singleton
-    fun provideLoadingState(): LoadingState {
-        return LoadingState()
+    fun provideMediaPlayer(): MediaPlayer {
+        return MediaPlayer()
     }
 }
