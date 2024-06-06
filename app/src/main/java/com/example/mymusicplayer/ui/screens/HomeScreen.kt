@@ -1,6 +1,8 @@
 package com.example.mymusicplayer.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,11 +40,14 @@ fun HomeScreen(viewModel: HomeVM) {
                     if (index > 0) {
                         HorizontalDivider(thickness = 1.dp)
                     }
-                    Track(
-                        audioTrack = tracks[index],
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
+                    Box(
+                        modifier = Modifier.clickable { viewModel.onTrackClick(index) }
+                    ) {
+                        Track(
+                            audioTrack = tracks[index],
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                        )
+                    }
                 }
             )
         }

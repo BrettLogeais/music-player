@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = { NavBar() },
                     bottomBar = { MusicBar(musicBarVM) }
-
                 ) { paddingValues ->
                     AppNavigation(
                         context = this@MainActivity,
