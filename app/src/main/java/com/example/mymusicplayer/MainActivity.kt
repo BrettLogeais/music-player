@@ -30,14 +30,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import com.example.mymusicplayer.ui.MusicBar
 import com.example.mymusicplayer.ui.screens.HomeScreen
-import com.example.mymusicplayer.viewmodels.MusicBarVM
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    val musicBarVM: MusicBarVM by viewModels()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -54,7 +51,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Scaffold(
                     topBar = { NavBar() },
-                    bottomBar = { MusicBar(musicBarVM) }
+                    bottomBar = { MusicBar() }
                 ) { paddingValues ->
                     AppNavigation(
                         context = this@MainActivity,
