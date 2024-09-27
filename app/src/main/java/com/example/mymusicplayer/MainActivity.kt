@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
 import com.example.mymusicplayer.ui.MusicBar
 import com.example.mymusicplayer.ui.screens.HomeScreen
+import com.example.mymusicplayer.ui.screens.TrackScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
@@ -47,16 +48,52 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         launchPermissionRequest()
+
         setContent {
+            val navController = rememberNavController()
+
             AppTheme {
                 Scaffold(
                     topBar = { NavBar() },
-                    bottomBar = { MusicBar() }
+                    bottomBar = { MusicBar { navController.navigate(Track) } }
                 ) { paddingValues ->
-                    AppNavigation(
-                        context = this@MainActivity,
+
+                    val permissionLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.RequestPermission()
+                    ) { isGranted: Boolean ->
+                        if (isGranted) {
+                            // Permission is granted
+                        } else {
+                            // Handle permission denial
+                        }
+                    }
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = Home,
                         modifier = Modifier.padding(paddingValues = paddingValues)
-                    )
+                    ) {
+                        composable<Home> {
+                            HomeScreen()
+                            LaunchedEffect(Unit) {
+                                // Check if the permission is already granted
+                                if (ContextCompat.checkSelfPermission(
+                                        applicationContext,
+                                        Manifest.permission.READ_EXTERNAL_STORAGE
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    // Request the permission
+                                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                } else {
+                                    // Permission already granted
+                                    Log.d("Console", "Permission already granted")
+                                }
+                            }
+                        }
+                        composable<Track> {
+                            TrackScreen()
+                        }
+                    }
                 }
             }
         }
@@ -89,41 +126,8 @@ fun AppNavigation(
     context: Context,
     modifier: Modifier = Modifier
 ) {
-    val navController = rememberNavController()
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission is granted
-        } else {
-            // Handle permission denial
-        }
-    }
 
-    NavHost(
-        navController = navController,
-        startDestination = Home,
-        modifier = modifier
-    ) {
-        composable<Home> {
-            HomeScreen()
-            LaunchedEffect(Unit) {
-                // Check if the permission is already granted
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // Request the permission
-                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                } else {
-                    // Permission already granted
-                    Log.d("Console", "Permission already granted")
-                }
-            }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,3 +152,6 @@ fun NavBar() {
 
 @Serializable
 object Home
+
+@Serializable
+object Track

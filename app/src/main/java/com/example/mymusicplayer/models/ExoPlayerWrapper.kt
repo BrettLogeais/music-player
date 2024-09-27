@@ -29,7 +29,7 @@ class ExoPlayerWrapper @Inject constructor(
     val current: StateFlow<MediaItem?> get() = _current
 
     private var _items: List<MediaItem> = listOf()
-    private var _position = 0
+    private var _index = 0
 
     init {
         player.addListener(object : Player.Listener {
@@ -51,7 +51,7 @@ class ExoPlayerWrapper @Inject constructor(
                     Player.STATE_ENDED -> {
                         println("Playlist Ended")
                         when (_playState.value.mode) {
-                            PlayMode.ALL -> if (_position < _items.size-1) next() else pause()
+                            PlayMode.ALL -> if (_index < _items.size - 1) next() else pause()
                             PlayMode.ALL_REPEAT -> next()
                             else -> pause()
                         }
@@ -59,6 +59,10 @@ class ExoPlayerWrapper @Inject constructor(
                 }
             }
         })
+    }
+
+    fun addListener(listener: Player.Listener) {
+        player.addListener(listener)
     }
 
     fun play() {
@@ -106,17 +110,30 @@ class ExoPlayerWrapper @Inject constructor(
         _items = mediaItems
     }
 
+    fun getDuration(): Long {
+        return player.duration
+    }
+
+    fun getPosition(): Long {
+        return player.currentPosition
+    }
+
     fun seekTo(mediaItemIndex: Int, positionMs: Long = C.TIME_UNSET) {
         if (mediaItemIndex !in _items.indices) return
-        if (mediaItemIndex == _position) {
+        if (mediaItemIndex == _index) {
             player.seekTo(positionMs)
         } else {
             val mediaItem = _items[mediaItemIndex]
             player.setMediaItem(mediaItem)
             player.seekTo(positionMs)
             _current.value = mediaItem
-            _position = mediaItemIndex
+            _index = mediaItemIndex
         }
+        start()
+    }
+
+    fun seekTo(positionMs: Long = C.TIME_UNSET) {
+        player.seekTo(positionMs)
         start()
     }
 
@@ -129,13 +146,13 @@ class ExoPlayerWrapper @Inject constructor(
         val mediaItem = _items[position]
         player.setMediaItem(mediaItem)
         _current.value = mediaItem
-        _position = position
+        _index = position
         start()
     }
 
     private fun nextPosition(): Int {
         if (_items.size <= 1) return -1
-        return (_position + 1) % _items.size
+        return (_index + 1) % _items.size
     }
 
     fun previous() {
@@ -150,13 +167,13 @@ class ExoPlayerWrapper @Inject constructor(
             val mediaItem = _items[position]
             player.setMediaItem(mediaItem)
             _current.value = mediaItem
-            _position = position
+            _index = position
             start()
         }
     }
 
     private fun previousPosition(): Int {
         if (_items.size <= 1) return -1
-        return (_position + _items.size - 1) % _items.size
+        return (_index + _items.size - 1) % _items.size
     }
 }

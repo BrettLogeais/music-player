@@ -1,5 +1,6 @@
 package com.example.mymusicplayer.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -41,7 +42,9 @@ private fun Preview() {
 }
 
 @Composable
-fun MusicBar() {
+fun MusicBar(
+    onTrackClick: () -> Unit = {}
+) {
     val viewModel: MusicBarVM = hiltViewModel()
 
     val playState by viewModel.playState.collectAsState()
@@ -50,6 +53,7 @@ fun MusicBar() {
     Bar(
         playState = playState,
         currentTrack = current,
+        onTrackClick = onTrackClick,
         onTogglePlayback = { viewModel.onPlayPauseClick() },
         onPreviousClick = { viewModel.onSkipPreviousClick() },
         onNextClick = { viewModel.onSkipNextClick() },
@@ -62,6 +66,7 @@ fun MusicBar() {
 private fun Bar(
     playState: PlayState,
     currentTrack: MediaItem?,
+    onTrackClick: () -> Unit = {},
     onTogglePlayback: () -> Unit = {},
     onPreviousClick: () -> Unit = {},
     onNextClick: () -> Unit = {},
@@ -80,6 +85,7 @@ private fun Bar(
                 .weight(1f)
                 .padding(start = 8.dp)
                 .align(Alignment.CenterVertically)
+                .clickable { onTrackClick() }
         ) {
             currentTrack?.let {
                 Text(
