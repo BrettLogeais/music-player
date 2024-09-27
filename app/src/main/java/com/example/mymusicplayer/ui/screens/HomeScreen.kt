@@ -39,7 +39,7 @@ fun HomeScreen() {
                         modifier = Modifier.clickable { viewModel.onTrackClick(index) }
                     ) {
                         Track(
-                            audioTrack = tracks[index],
+                            mediaItem = tracks[index],
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
                         )
                     }

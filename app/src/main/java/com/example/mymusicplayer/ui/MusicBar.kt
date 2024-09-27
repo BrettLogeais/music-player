@@ -23,21 +23,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mymusicplayer.R
-import com.example.mymusicplayer.models.AudioTrack
 import com.example.mymusicplayer.models.PlayState
-import com.example.mymusicplayer.models.PlayType
+import com.example.mymusicplayer.models.PlayMode
 import com.example.mymusicplayer.viewmodels.MusicBarVM
+import com.google.android.exoplayer2.MediaItem
 
 @Preview
 @Composable
 private fun Preview() {
     Bar(
-        playState = PlayState(playType = PlayType.SINGLE, isPlaying = false, isLooping = false),
-        currentTrack = AudioTrack(
-            "Really Long Title To A Really Short Song",
-            "Artist",
-            "Path"
-        )
+        playState = PlayState(
+            mode = PlayMode.ONE,
+            isPlaying = false
+        ),
+        currentTrack = MediaItem.fromUri("")
     )
 }
 
@@ -62,7 +61,7 @@ fun MusicBar() {
 @Composable
 private fun Bar(
     playState: PlayState,
-    currentTrack: AudioTrack?,
+    currentTrack: MediaItem?,
     onTogglePlayback: () -> Unit = {},
     onPreviousClick: () -> Unit = {},
     onNextClick: () -> Unit = {},
@@ -84,7 +83,7 @@ private fun Bar(
         ) {
             currentTrack?.let {
                 Text(
-                    text = it.title,
+                    text = it.mediaMetadata.title.toString(),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -92,7 +91,7 @@ private fun Bar(
                         .align(Alignment.Start)
                 )
                 Text(
-                    text = it.artist,
+                    text = it.mediaMetadata.artist.toString(),
                     fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -133,10 +132,11 @@ private fun Bar(
         IconButton(onClick = onTypeClick) {
             Icon(
                 painter = painterResource(
-                    id = when (playState.playType) {
-                        PlayType.SHUFFLE -> R.drawable.shuffle
-                        PlayType.ORDERED -> R.drawable.ordered
-                        else -> R.drawable.single
+                    id = when (playState.mode) {
+                        PlayMode.ONE, PlayMode.ONE_REPEAT ->
+                            R.drawable.single
+                        PlayMode.ALL, PlayMode.ALL_REPEAT ->
+                            R.drawable.ordered
                     }
                 ),
                 contentDescription = "Play Type Button"
@@ -146,9 +146,11 @@ private fun Bar(
         IconButton(onClick = onLoopClick) {
             Icon(
                 painter = painterResource(
-                    id = when (playState.isLooping) {
-                        true -> R.drawable.repeat_on
-                        false -> R.drawable.repeat_off
+                    id = when (playState.mode) {
+                        PlayMode.ONE_REPEAT, PlayMode.ALL_REPEAT ->
+                            R.drawable.repeat_on
+                        PlayMode.ONE, PlayMode.ALL ->
+                            R.drawable.repeat_off
                     }
                 ),
                 contentDescription = "Loop Audio Button"
