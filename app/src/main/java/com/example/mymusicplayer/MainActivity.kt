@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -23,7 +23,6 @@ import com.example.compose.AppTheme
 import com.example.mymusicplayer.ui.MusicBar
 import com.example.mymusicplayer.ui.screens.HomeScreen
 import com.example.mymusicplayer.ui.screens.TrackScreen
-import com.example.mymusicplayer.viewmodels.PlayerVM
 import com.example.mymusicplayer.viewmodels.TopBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
@@ -49,7 +48,11 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Scaffold(
                     topBar = { TopBar() },
-                    bottomBar = { MusicBar { navController.navigate(Track) } }
+                    bottomBar = {
+                        MusicBar(
+                            modifier = Modifier.padding(12.dp)
+                        ) { navController.navigate(Track) }
+                    }
                 ) { paddingValues ->
 
                     val permissionLauncher = rememberLauncherForActivityResult(

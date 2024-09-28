@@ -6,7 +6,6 @@ import com.example.mymusicplayer.models.ExoPlayerWrapper
 import com.example.mymusicplayer.models.PlayerState
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +51,7 @@ class PlayerVM @Inject constructor(
         viewModelScope.launch {
             while (true) {
                 _currentPosition.value = player.getPosition()
-                delay(100)
+                delay(10)
             }
         }
     }
