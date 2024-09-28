@@ -201,18 +201,15 @@ class ExoPlayerWrapper @Inject constructor(
 
     fun seekTo(mediaItemIndex: Int, positionMs: Long = C.TIME_UNSET) {
         if (mediaItemIndex !in _items.indices) return
-        val mediaItem = getMediaItem(mediaItemIndex)
-        if (mediaItem == player.currentMediaItem) {
-            player.seekTo(positionMs)
-        } else {
-            mediaItem?.let {
-                player.setMediaItem(it)
-                player.seekTo(positionMs)
-                currentTrack = it
-                _index = mediaItemIndex
 
-                notifyTrackChanged(it)
-            }
+        val mediaItem = getMediaItem(mediaItemIndex)
+        mediaItem?.let {
+            player.setMediaItem(it)
+            player.seekTo(positionMs)
+            currentTrack = it
+            _index = mediaItemIndex
+
+            notifyTrackChanged(it)
         }
     }
 
