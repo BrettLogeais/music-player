@@ -91,22 +91,30 @@ class ExoPlayerWrapper @Inject constructor(
         })
     }
 
-    private fun start() {
+    private fun restart() {
         player.prepare()
-        play()
+        if (!playerState.isPlaying) {
+            when (playerState.mode) {
+                PlayMode.ONE, PlayMode.ONE_REPEAT -> seekTo(C.TIME_UNSET)
+                PlayMode.ALL, PlayMode.ALL_REPEAT -> seekTo(0)
+            }
+        }
     }
 
     fun play() {
+        if (player.playbackState == Player.STATE_ENDED) {
+            restart()
+        }
         player.play()
-        playerState = playerState.copy(isPlaying = true)
 
+        playerState = playerState.copy(isPlaying = true)
         notifyPlayerStateChanged(playerState)
     }
 
     fun pause() {
         player.pause()
-        playerState = playerState.copy(isPlaying = false)
 
+        playerState = playerState.copy(isPlaying = false)
         notifyPlayerStateChanged(playerState)
     }
 
@@ -125,8 +133,8 @@ class ExoPlayerWrapper @Inject constructor(
             PlayMode.ONE_REPEAT -> player.repeatMode = Player.REPEAT_MODE_ONE
             else -> player.repeatMode = Player.REPEAT_MODE_OFF
         }
-        this.playerState = playerState
 
+        this.playerState = playerState
         notifyPlayerStateChanged(playerState)
     }
 
@@ -163,6 +171,7 @@ class ExoPlayerWrapper @Inject constructor(
         seekTo(index)
         if (playerState.isShuffled)
             shuffle()
+        play()
     }
 
     fun queueItem(mediaItem: MediaItem) {
@@ -172,6 +181,7 @@ class ExoPlayerWrapper @Inject constructor(
     fun setMediaItems(mediaItems: List<MediaItem>) {
         _items = mediaItems
         _order = _items.indices.toList()
+        player.prepare()
     }
 
     fun getMediaItem(index: Int): MediaItem? {
@@ -204,12 +214,10 @@ class ExoPlayerWrapper @Inject constructor(
                 notifyTrackChanged(it)
             }
         }
-        start()
     }
 
     fun seekTo(positionMs: Long = C.TIME_UNSET) {
         player.seekTo(positionMs)
-        start()
     }
 
     fun next() {
@@ -222,7 +230,7 @@ class ExoPlayerWrapper @Inject constructor(
             currentTrack = mediaItem
 
             notifyTrackChanged(mediaItem)
-            start()
+            play()
         } else {
             isPlayingQueue = false
             seekTo(nextIndex())

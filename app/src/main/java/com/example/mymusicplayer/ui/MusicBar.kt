@@ -53,10 +53,6 @@ fun MusicBar(
     val currentPosition by playerVM.currentPosition.collectAsState()
     val duration by playerVM.duration.collectAsState()
 
-    LaunchedEffect(currentPosition) {
-        print("$currentPosition / $duration = ${if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0}")
-    }
-
 //    DisposableEffect(Unit) {
 //        onDispose { playerVM.onDispose() }
 //    }
