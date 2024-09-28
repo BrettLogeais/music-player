@@ -1,7 +1,6 @@
 package com.example.mymusicplayer
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -11,19 +10,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +23,8 @@ import com.example.compose.AppTheme
 import com.example.mymusicplayer.ui.MusicBar
 import com.example.mymusicplayer.ui.screens.HomeScreen
 import com.example.mymusicplayer.ui.screens.TrackScreen
+import com.example.mymusicplayer.viewmodels.PlayerVM
+import com.example.mymusicplayer.viewmodels.TopBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
@@ -54,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
             AppTheme {
                 Scaffold(
-                    topBar = { NavBar() },
+                    topBar = { TopBar() },
                     bottomBar = { MusicBar { navController.navigate(Track) } }
                 ) { paddingValues ->
 
@@ -119,35 +113,6 @@ class MainActivity : ComponentActivity() {
     fun hasPermissions(permissions: Array<String>): Boolean = permissions.all {
         ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
     }
-}
-
-@Composable
-fun AppNavigation(
-    context: Context,
-    modifier: Modifier = Modifier
-) {
-
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NavBar() {
-    TopAppBar(
-        title = {
-            Text(text = "Title")
-        },
-        navigationIcon = {
-            IconButton(
-                onClick = {  }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Navigation Menu Button"
-                )
-            }
-        }
-    )
 }
 
 @Serializable

@@ -13,6 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,18 +25,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mymusicplayer.R
-import com.example.mymusicplayer.models.PlayState
+import com.example.mymusicplayer.models.PlayerState
 import com.example.mymusicplayer.models.PlayMode
-import com.example.mymusicplayer.viewmodels.MusicBarVM
+import com.example.mymusicplayer.viewmodels.PlayerVM
 import com.google.android.exoplayer2.MediaItem
 
 @Preview
 @Composable
 private fun Preview() {
     Bar(
-        playState = PlayState(
+        playerState = PlayerState(
             mode = PlayMode.ONE,
-            isPlaying = false
+            isPlaying = false,
+            isShuffled = false
         ),
         currentTrack = MediaItem.fromUri("")
     )
@@ -43,28 +45,30 @@ private fun Preview() {
 
 @Composable
 fun MusicBar(
+    playerVM: PlayerVM = hiltViewModel(),
     onTrackClick: () -> Unit = {}
 ) {
-    val viewModel: MusicBarVM = hiltViewModel()
-
-    val playState by viewModel.playState.collectAsState()
-    val current by viewModel.currentTrack.collectAsState()
+    val playState by playerVM.playerState.collectAsState()
+    val current by playerVM.currentTrack.collectAsState()
+    DisposableEffect(Unit) {
+        onDispose { playerVM.onDispose() }
+    }
 
     Bar(
-        playState = playState,
+        playerState = playState,
         currentTrack = current,
         onTrackClick = onTrackClick,
-        onTogglePlayback = { viewModel.onPlayPauseClick() },
-        onPreviousClick = { viewModel.onSkipPreviousClick() },
-        onNextClick = { viewModel.onSkipNextClick() },
-        onTypeClick = { viewModel.onTypeClick() },
-        onLoopClick = { viewModel.onLoopClick() }
+        onTogglePlayback = { playerVM.onPlayPauseClick() },
+        onPreviousClick = { playerVM.onSkipPreviousClick() },
+        onNextClick = { playerVM.onSkipNextClick() },
+        onTypeClick = { playerVM.onTypeClick() },
+        onLoopClick = { playerVM.onLoopClick() }
     )
 }
 
 @Composable
 private fun Bar(
-    playState: PlayState,
+    playerState: PlayerState,
     currentTrack: MediaItem?,
     onTrackClick: () -> Unit = {},
     onTogglePlayback: () -> Unit = {},
@@ -115,7 +119,7 @@ private fun Bar(
         }
 
         IconButton(onClick = onTogglePlayback) {
-            if (playState.isPlaying) {
+            if (playerState.isPlaying) {
                 Icon(
                     painter = painterResource(id = R.drawable.pause),
                     contentDescription = "Pause Audio Button"
@@ -138,7 +142,7 @@ private fun Bar(
         IconButton(onClick = onTypeClick) {
             Icon(
                 painter = painterResource(
-                    id = when (playState.mode) {
+                    id = when (playerState.mode) {
                         PlayMode.ONE, PlayMode.ONE_REPEAT ->
                             R.drawable.single
                         PlayMode.ALL, PlayMode.ALL_REPEAT ->
@@ -152,7 +156,7 @@ private fun Bar(
         IconButton(onClick = onLoopClick) {
             Icon(
                 painter = painterResource(
-                    id = when (playState.mode) {
+                    id = when (playerState.mode) {
                         PlayMode.ONE_REPEAT, PlayMode.ALL_REPEAT ->
                             R.drawable.repeat_on
                         PlayMode.ONE, PlayMode.ALL ->

@@ -4,9 +4,6 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 /**
@@ -17,30 +14,56 @@ class ExoPlayerWrapper @Inject constructor(
     val player: ExoPlayer
 ) {
 
-    private val _playState = MutableStateFlow(
-        PlayState(
-            mode = PlayMode.ONE,
-            isPlaying = false
-        )
+    var playerState = PlayerState(
+        mode = PlayMode.ONE,
+        isShuffled = false,
+        isPlaying = false
     )
-    val playState: StateFlow<PlayState> get() = _playState
-
-    private val _current = MutableStateFlow<MediaItem?>(null)
-    val current: StateFlow<MediaItem?> get() = _current
 
     private var _items: List<MediaItem> = listOf()
-    private var _index = 0
+    private var _order: List<Int> = listOf()
+
+    private var _index = -1
+    var currentTrack: MediaItem? = null
+
+    private val listeners = mutableListOf<ExoPlayerListener>()
+
+    interface ExoPlayerListener {
+        fun onPlayerStateChanged(playerState: PlayerState)
+        fun onTrackChanged(mediaItem: MediaItem)
+        fun onDurationChanged(duration: Long)
+    }
+
+    fun addListener(listener: ExoPlayerListener) {
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: ExoPlayerListener) {
+        listeners.remove(listener)
+    }
+
+    private fun notifyPlayerStateChanged(playerState: PlayerState) {
+        listeners.forEach { it.onPlayerStateChanged(playerState) }
+    }
+
+    private fun notifyTrackChanged(mediaItem: MediaItem) {
+        listeners.forEach { it.onTrackChanged(mediaItem) }
+    }
+
+    private fun notifyDurationChanged(duration: Long) {
+        listeners.forEach { it.onDurationChanged(duration) }
+    }
 
     init {
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                mediaItem?.let { _current.value = it }
             }
 
             override fun onPlaybackStateChanged(state: Int) {
                 when (state) {
                     Player.STATE_READY -> {
                         println("Player Ready")
+                        notifyDurationChanged(player.duration)
                     }
                     Player.STATE_BUFFERING -> {
                         println("Player Buffering")
@@ -50,7 +73,7 @@ class ExoPlayerWrapper @Inject constructor(
                     }
                     Player.STATE_ENDED -> {
                         println("Playlist Ended")
-                        when (_playState.value.mode) {
+                        when (playerState.mode) {
                             PlayMode.ALL -> if (_index < _items.size - 1) next() else pause()
                             PlayMode.ALL_REPEAT -> next()
                             else -> pause()
@@ -61,53 +84,90 @@ class ExoPlayerWrapper @Inject constructor(
         })
     }
 
-    fun addListener(listener: Player.Listener) {
-        player.addListener(listener)
+    private fun start() {
+        player.prepare()
+        play()
     }
 
     fun play() {
         player.play()
-        _playState.update { it.copy(isPlaying = true) }
+        playerState = playerState.copy(isPlaying = true)
+
+        notifyPlayerStateChanged(playerState)
     }
 
     fun pause() {
         player.pause()
-        _playState.update { it.copy(isPlaying = false) }
-    }
+        playerState = playerState.copy(isPlaying = false)
 
-    fun togglePlay() {
-        val isPlaying = !player.isPlaying
-        if (isPlaying) play()
-        else pause()
+        notifyPlayerStateChanged(playerState)
     }
 
     fun toggleLooping() {
-        val mode = _playState.value.mode.toggleModeRepeat()
-        updatePlayState(_playState.value.copy(mode = mode))
+        val mode = playerState.mode.toggleModeRepeat()
+        updatePlayMode(playerState.copy(mode = mode))
     }
 
     fun nextType() {
-        val mode = _playState.value.mode.toggleModeType()
-        updatePlayState(_playState.value.copy(mode = mode))
+        val mode = playerState.mode.toggleModeType()
+        updatePlayMode(playerState.copy(mode = mode))
     }
 
-    private fun updatePlayState(playState: PlayState) {
-        when (playState.mode) {
+    private fun updatePlayMode(playerState: PlayerState) {
+        when (playerState.mode) {
             PlayMode.ONE_REPEAT -> player.repeatMode = Player.REPEAT_MODE_ONE
             else -> player.repeatMode = Player.REPEAT_MODE_OFF
         }
-        _playState.value = playState
+        this.playerState = playerState
+
+        notifyPlayerStateChanged(playerState)
     }
 
-    private fun start() {
-        _current.value?.let {
-            player.prepare()
-            play()
-        }
+    fun shuffle() {
+        if (_items.isEmpty()) return
+        if (_order.isEmpty()) _order = _items.indices.toList()
+        val current = _order[_index]
+
+        val indices = (_items.indices)
+            .toMutableList()
+            .apply { remove(current) }
+            .shuffled()
+
+        _order = mutableListOf(current).apply { addAll(indices) }
+        _index = 0
+
+        playerState = playerState.copy(isShuffled = true)
+        notifyPlayerStateChanged(playerState)
+    }
+
+    fun unShuffle() {
+        if (_items.isEmpty()) return
+        if (_order.isEmpty()) _order = _items.indices.toList()
+        val current = _order[_index]
+        _order = _items.indices.toList()
+        _index = current
+
+        playerState = playerState.copy(isShuffled = false)
+        notifyPlayerStateChanged(playerState)
+    }
+
+    fun playItemFromPlaylist(index: Int, mediaItems: List<MediaItem>) {
+        setMediaItems(mediaItems)
+        seekTo(index)
+        if (playerState.isShuffled)
+            shuffle()
     }
 
     fun setMediaItems(mediaItems: List<MediaItem>) {
         _items = mediaItems
+        _order = _items.indices.toList()
+    }
+
+    fun getMediaItem(index: Int): MediaItem? {
+        if (_items.isEmpty() || _items.size != _order.size) return null
+        if (index !in _items.indices) return null
+
+        return _items[_order[index]]
     }
 
     fun getDuration(): Long {
@@ -123,11 +183,15 @@ class ExoPlayerWrapper @Inject constructor(
         if (mediaItemIndex == _index) {
             player.seekTo(positionMs)
         } else {
-            val mediaItem = _items[mediaItemIndex]
-            player.setMediaItem(mediaItem)
-            player.seekTo(positionMs)
-            _current.value = mediaItem
-            _index = mediaItemIndex
+            val mediaItem = getMediaItem(mediaItemIndex)
+            mediaItem?.let {
+                player.setMediaItem(it)
+                player.seekTo(positionMs)
+                currentTrack = it
+                _index = mediaItemIndex
+
+                notifyTrackChanged(it)
+            }
         }
         start()
     }
@@ -139,40 +203,20 @@ class ExoPlayerWrapper @Inject constructor(
 
     fun next() {
         if (_items.isEmpty()) return
-
-        val position = nextPosition()
-        if (position < 0) return
-
-        val mediaItem = _items[position]
-        player.setMediaItem(mediaItem)
-        _current.value = mediaItem
-        _index = position
-        start()
+        seekTo(nextIndex())
     }
 
-    private fun nextPosition(): Int {
+    private fun nextIndex(): Int {
         if (_items.size <= 1) return -1
         return (_index + 1) % _items.size
     }
 
     fun previous() {
         if (_items.isEmpty()) return
-
-        if (player.currentPosition > 5000L) {
-            player.seekTo(C.TIME_UNSET)
-        } else {
-            val position = previousPosition()
-            if (position < 0) return
-
-            val mediaItem = _items[position]
-            player.setMediaItem(mediaItem)
-            _current.value = mediaItem
-            _index = position
-            start()
-        }
+        seekTo(previousIndex())
     }
 
-    private fun previousPosition(): Int {
+    private fun previousIndex(): Int {
         if (_items.size <= 1) return -1
         return (_index + _items.size - 1) % _items.size
     }

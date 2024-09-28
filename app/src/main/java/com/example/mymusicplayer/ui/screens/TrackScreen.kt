@@ -14,18 +14,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.mymusicplayer.viewmodels.TrackVM
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import com.example.mymusicplayer.viewmodels.PlayerVM
 
 @Composable
-fun TrackScreen() {
+fun TrackScreen(
+    playerVM: PlayerVM = hiltViewModel()
+) {
 
-    val viewModel: TrackVM = hiltViewModel()
-    val track by viewModel.currentTrack.collectAsState()
+    val track by playerVM.currentTrack.collectAsState()
 
-    val currentPosition by viewModel.currentPosition.collectAsState()
-    val duration by viewModel.duration.collectAsState()
+    val currentPosition by playerVM.currentPosition.collectAsState()
+    val duration by playerVM.duration.collectAsState()
 
     val maxDuration = if (duration > 0) duration else 1L
 
@@ -52,7 +51,7 @@ fun TrackScreen() {
 
             Slider(
                 value = currentPosition.toFloat(),
-                onValueChange = { viewModel.onSeek(it.toLong()) },
+                onValueChange = { playerVM.onSeek(it.toLong()) },
                 valueRange = 0f..maxDuration.toFloat(),
                 modifier = Modifier.fillMaxWidth()
             )
