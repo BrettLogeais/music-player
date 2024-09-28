@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     bottomBar = {
                         MusicBar(
                             modifier = Modifier.padding(12.dp)
-                        ) { navController.navigate(Track) }
+                        ) { navController.safeNavigate(Track) }
                     }
                 ) { paddingValues ->
 
@@ -93,6 +95,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    fun NavController.safeNavigate(route: Any) {
+        this.currentDestination?.let { destination ->
+            if (!destination.hasRoute(route::class))
+                this.navigate(route)
         }
     }
 
