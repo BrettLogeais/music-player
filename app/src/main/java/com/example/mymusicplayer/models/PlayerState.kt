@@ -1,7 +1,8 @@
 package com.example.mymusicplayer.models
 
-data class PlayState(
+data class PlayerState(
     val mode: PlayMode,
+    val isShuffled: Boolean,
     val isPlaying: Boolean
 )
 

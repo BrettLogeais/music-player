@@ -58,7 +58,6 @@ class HomeVM @Inject constructor(
     }
 
     fun onTrackClick(index: Int) {
-        player.setMediaItems(_tracks.value)
-        player.seekTo(index)
+        player.playItemFromPlaylist(index, _tracks.value)
     }
 }
