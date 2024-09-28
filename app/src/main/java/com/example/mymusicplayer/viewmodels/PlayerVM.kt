@@ -66,6 +66,7 @@ class PlayerVM @Inject constructor(
 
     fun onSkipNextClick() {
         player.next()
+        player.play()
     }
 
     fun onSkipPreviousClick() {
@@ -74,6 +75,7 @@ class PlayerVM @Inject constructor(
         } else {
             player.previous()
         }
+        player.play()
     }
 
     fun onLoopClick() {

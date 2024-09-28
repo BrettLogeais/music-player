@@ -60,4 +60,8 @@ class HomeVM @Inject constructor(
     fun onTrackClick(index: Int) {
         player.playItemFromPlaylist(index, _tracks.value)
     }
+
+    fun onTrackSwipe(index: Int) {
+        player.queueItem(_tracks.value[index])
+    }
 }

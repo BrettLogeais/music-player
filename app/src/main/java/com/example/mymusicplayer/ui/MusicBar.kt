@@ -1,6 +1,5 @@
 package com.example.mymusicplayer.ui
 
-import android.widget.ProgressBar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,13 +17,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,10 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mymusicplayer.R
-import com.example.mymusicplayer.models.PlayerState
 import com.example.mymusicplayer.models.PlayMode
 import com.example.mymusicplayer.viewmodels.PlayerVM
-import com.google.android.exoplayer2.MediaItem
 
 @Preview
 @Composable
@@ -58,13 +53,9 @@ fun MusicBar(
     val currentPosition by playerVM.currentPosition.collectAsState()
     val duration by playerVM.duration.collectAsState()
 
-    LaunchedEffect(currentPosition) {
-        print("$currentPosition / $duration = ${if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0}")
-    }
-
-    DisposableEffect(Unit) {
-        onDispose { playerVM.onDispose() }
-    }
+//    DisposableEffect(Unit) {
+//        onDispose { playerVM.onDispose() }
+//    }
 
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),

@@ -7,7 +7,7 @@ import com.google.android.exoplayer2.Player
 import javax.inject.Inject
 
 /**
- * Wrapper For ExoPlayer for custom playlisting
+ * Wrapper for ExoPlayer for custom playlisting
  */
 
 class ExoPlayerWrapper @Inject constructor(
@@ -20,8 +20,11 @@ class ExoPlayerWrapper @Inject constructor(
         isPlaying = false
     )
 
+    private var isPlayingQueue = false
+
     private var _items: List<MediaItem> = listOf()
     private var _order: List<Int> = listOf()
+    private var _queue: MutableList<MediaItem> = mutableListOf()
 
     private var _index = -1
     var currentTrack: MediaItem? = null
@@ -73,9 +76,13 @@ class ExoPlayerWrapper @Inject constructor(
                     }
                     Player.STATE_ENDED -> {
                         println("Playlist Ended")
-                        when (playerState.mode) {
-                            PlayMode.ALL -> if (_index < _items.size - 1) next() else pause()
-                            PlayMode.ALL_REPEAT -> next()
+                        when {
+                            _queue.isNotEmpty() ->
+                                next()
+                            playerState.mode == PlayMode.ALL_REPEAT ->
+                                next()
+                            playerState.mode == PlayMode.ALL && _index < _items.size - 1 ->
+                                next()
                             else -> pause()
                         }
                     }
@@ -84,22 +91,30 @@ class ExoPlayerWrapper @Inject constructor(
         })
     }
 
-    private fun start() {
+    private fun restart() {
         player.prepare()
-        play()
+        if (!playerState.isPlaying) {
+            when (playerState.mode) {
+                PlayMode.ONE, PlayMode.ONE_REPEAT -> seekTo(C.TIME_UNSET)
+                PlayMode.ALL, PlayMode.ALL_REPEAT -> seekTo(0)
+            }
+        }
     }
 
     fun play() {
+        if (player.playbackState == Player.STATE_ENDED) {
+            restart()
+        }
         player.play()
-        playerState = playerState.copy(isPlaying = true)
 
+        playerState = playerState.copy(isPlaying = true)
         notifyPlayerStateChanged(playerState)
     }
 
     fun pause() {
         player.pause()
-        playerState = playerState.copy(isPlaying = false)
 
+        playerState = playerState.copy(isPlaying = false)
         notifyPlayerStateChanged(playerState)
     }
 
@@ -118,8 +133,8 @@ class ExoPlayerWrapper @Inject constructor(
             PlayMode.ONE_REPEAT -> player.repeatMode = Player.REPEAT_MODE_ONE
             else -> player.repeatMode = Player.REPEAT_MODE_OFF
         }
-        this.playerState = playerState
 
+        this.playerState = playerState
         notifyPlayerStateChanged(playerState)
     }
 
@@ -156,11 +171,17 @@ class ExoPlayerWrapper @Inject constructor(
         seekTo(index)
         if (playerState.isShuffled)
             shuffle()
+        play()
+    }
+
+    fun queueItem(mediaItem: MediaItem) {
+        _queue.add(mediaItem)
     }
 
     fun setMediaItems(mediaItems: List<MediaItem>) {
         _items = mediaItems
         _order = _items.indices.toList()
+        player.prepare()
     }
 
     fun getMediaItem(index: Int): MediaItem? {
@@ -180,30 +201,37 @@ class ExoPlayerWrapper @Inject constructor(
 
     fun seekTo(mediaItemIndex: Int, positionMs: Long = C.TIME_UNSET) {
         if (mediaItemIndex !in _items.indices) return
-        if (mediaItemIndex == _index) {
-            player.seekTo(positionMs)
-        } else {
-            val mediaItem = getMediaItem(mediaItemIndex)
-            mediaItem?.let {
-                player.setMediaItem(it)
-                player.seekTo(positionMs)
-                currentTrack = it
-                _index = mediaItemIndex
 
-                notifyTrackChanged(it)
-            }
+        val mediaItem = getMediaItem(mediaItemIndex)
+        mediaItem?.let {
+            player.setMediaItem(it)
+            player.seekTo(positionMs)
+            currentTrack = it
+            _index = mediaItemIndex
+
+            notifyTrackChanged(it)
         }
-        start()
     }
 
     fun seekTo(positionMs: Long = C.TIME_UNSET) {
         player.seekTo(positionMs)
-        start()
     }
 
     fun next() {
         if (_items.isEmpty()) return
-        seekTo(nextIndex())
+        if (_queue.isNotEmpty()) {
+            isPlayingQueue = true
+            val mediaItem = _queue[0]
+            _queue.removeAt(0)
+            player.setMediaItem(mediaItem)
+            currentTrack = mediaItem
+
+            notifyTrackChanged(mediaItem)
+            play()
+        } else {
+            isPlayingQueue = false
+            seekTo(nextIndex())
+        }
     }
 
     private fun nextIndex(): Int {
@@ -213,7 +241,12 @@ class ExoPlayerWrapper @Inject constructor(
 
     fun previous() {
         if (_items.isEmpty()) return
-        seekTo(previousIndex())
+        if (isPlayingQueue) {
+            isPlayingQueue = false
+            seekTo(_index)
+        } else {
+            seekTo(previousIndex())
+        }
     }
 
     private fun previousIndex(): Int {
