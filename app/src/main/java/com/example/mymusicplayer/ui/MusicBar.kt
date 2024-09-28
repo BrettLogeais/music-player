@@ -1,6 +1,8 @@
 package com.example.mymusicplayer.ui
 
+import android.widget.ProgressBar
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -9,16 +11,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,137 +41,138 @@ import com.google.android.exoplayer2.MediaItem
 @Preview
 @Composable
 private fun Preview() {
-    Bar(
-        playerState = PlayerState(
-            mode = PlayMode.ONE,
-            isPlaying = false,
-            isShuffled = false
-        ),
-        currentTrack = MediaItem.fromUri("")
-    )
+    Card {
+        MusicBar()
+    }
 }
 
 @Composable
 fun MusicBar(
+    modifier: Modifier = Modifier,
     playerVM: PlayerVM = hiltViewModel(),
     onTrackClick: () -> Unit = {}
 ) {
-    val playState by playerVM.playerState.collectAsState()
-    val current by playerVM.currentTrack.collectAsState()
+    val playerState by playerVM.playerState.collectAsState()
+    val currentTrack by playerVM.currentTrack.collectAsState()
+
+    val currentPosition by playerVM.currentPosition.collectAsState()
+    val duration by playerVM.duration.collectAsState()
+
+    LaunchedEffect(currentPosition) {
+        print("$currentPosition / $duration = ${if (duration > 0) currentPosition.toFloat() / duration.toFloat() else 0}")
+    }
+
     DisposableEffect(Unit) {
         onDispose { playerVM.onDispose() }
     }
 
-    Bar(
-        playerState = playState,
-        currentTrack = current,
-        onTrackClick = onTrackClick,
-        onTogglePlayback = { playerVM.onPlayPauseClick() },
-        onPreviousClick = { playerVM.onSkipPreviousClick() },
-        onNextClick = { playerVM.onSkipNextClick() },
-        onTypeClick = { playerVM.onTypeClick() },
-        onLoopClick = { playerVM.onLoopClick() }
-    )
-}
-
-@Composable
-private fun Bar(
-    playerState: PlayerState,
-    currentTrack: MediaItem?,
-    onTrackClick: () -> Unit = {},
-    onTogglePlayback: () -> Unit = {},
-    onPreviousClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
-    onTypeClick: () -> Unit = {},
-    onLoopClick: () -> Unit = {}
-) {
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
+    Card(
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        modifier = modifier
     ) {
+        Box {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+            ) {
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
-                .align(Alignment.CenterVertically)
-                .clickable { onTrackClick() }
-        ) {
-            currentTrack?.let {
-                Text(
-                    text = it.mediaMetadata.title.toString(),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Column(
                     modifier = Modifier
-                        .align(Alignment.Start)
-                )
-                Text(
-                    text = it.mediaMetadata.artist.toString(),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .align(Alignment.Start)
-                )
-            }
-        }
-
-        IconButton(onClick = onPreviousClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.skip_previous),
-                contentDescription = "Play Audio Button"
-            )
-        }
-
-        IconButton(onClick = onTogglePlayback) {
-            if (playerState.isPlaying) {
-                Icon(
-                    painter = painterResource(id = R.drawable.pause),
-                    contentDescription = "Pause Audio Button"
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Play Audio Button"
-                )
-            }
-        }
-
-        IconButton(onClick = onNextClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.skip_next),
-                contentDescription = "Play Audio Button"
-            )
-        }
-
-        IconButton(onClick = onTypeClick) {
-            Icon(
-                painter = painterResource(
-                    id = when (playerState.mode) {
-                        PlayMode.ONE, PlayMode.ONE_REPEAT ->
-                            R.drawable.single
-                        PlayMode.ALL, PlayMode.ALL_REPEAT ->
-                            R.drawable.ordered
+                        .weight(1f)
+                        .padding(start = 16.dp)
+                        .align(Alignment.CenterVertically)
+                        .clickable { onTrackClick() }
+                ) {
+                    currentTrack?.let {
+                        Text(
+                            text = it.mediaMetadata.title.toString(),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                        )
+                        Text(
+                            text = it.mediaMetadata.artist.toString(),
+                            fontSize = 12.sp,
+                            lineHeight = 12.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                        )
                     }
-                ),
-                contentDescription = "Play Type Button"
-            )
-        }
+                }
 
-        IconButton(onClick = onLoopClick) {
-            Icon(
-                painter = painterResource(
-                    id = when (playerState.mode) {
-                        PlayMode.ONE_REPEAT, PlayMode.ALL_REPEAT ->
-                            R.drawable.repeat_on
-                        PlayMode.ONE, PlayMode.ALL ->
-                            R.drawable.repeat_off
+                IconButton(onClick = { playerVM.onSkipPreviousClick() }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.skip_previous),
+                        contentDescription = "Play Audio Button"
+                    )
+                }
+
+                IconButton(onClick = { playerVM.onPlayPauseClick() }) {
+                    if (playerState.isPlaying) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.pause),
+                            contentDescription = "Pause Audio Button"
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.PlayArrow,
+                            contentDescription = "Play Audio Button"
+                        )
                     }
-                ),
-                contentDescription = "Loop Audio Button"
+                }
+
+                IconButton(onClick = { playerVM.onSkipNextClick() }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.skip_next),
+                        contentDescription = "Play Audio Button"
+                    )
+                }
+
+                IconButton(onClick = { playerVM.onTypeClick() }) {
+                    Icon(
+                        painter = painterResource(
+                            id = when (playerState.mode) {
+                                PlayMode.ONE, PlayMode.ONE_REPEAT ->
+                                    R.drawable.single
+                                PlayMode.ALL, PlayMode.ALL_REPEAT ->
+                                    R.drawable.ordered
+                            }
+                        ),
+                        contentDescription = "Play Type Button"
+                    )
+                }
+
+                IconButton(onClick = { playerVM.onLoopClick() }) {
+                    Icon(
+                        painter = painterResource(
+                            id = when (playerState.mode) {
+                                PlayMode.ONE_REPEAT, PlayMode.ALL_REPEAT ->
+                                    R.drawable.repeat_on
+                                PlayMode.ONE, PlayMode.ALL ->
+                                    R.drawable.repeat_off
+                            }
+                        ),
+                        contentDescription = "Loop Audio Button"
+                    )
+                }
+            }
+            LinearProgressIndicator(
+                progress = {
+                    if (duration > 0L) currentPosition.toFloat() / duration.toFloat()
+                    else 0f
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .padding(horizontal = 12.dp)
+                    .align(Alignment.BottomCenter)
             )
         }
     }
