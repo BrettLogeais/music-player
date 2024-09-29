@@ -40,8 +40,8 @@ fun TopBar(playerVM: PlayerVM = hiltViewModel()) {
                 Icon(
                     painter = painterResource(
                         when (playState.isShuffled) {
-                            true -> R.drawable.shuffle_on
-                            false -> R.drawable.shuffle_off
+                            true -> R.drawable.ic_state_shuffle_on
+                            false -> R.drawable.ic_state_shuffle_off
                         }
                     ),
                     contentDescription = "Shuffle Playlist Button"

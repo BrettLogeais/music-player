@@ -96,7 +96,7 @@ fun MusicBar(
 
                 IconButton(onClick = { playerVM.onSkipPreviousClick() }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.skip_previous),
+                        painter = painterResource(id = R.drawable.ic_skip_previous),
                         contentDescription = "Skip Previous Button"
                     )
                 }
@@ -104,12 +104,12 @@ fun MusicBar(
                 IconButton(onClick = { playerVM.onPlayPauseClick() }) {
                     if (playerState.isPlaying) {
                         Icon(
-                            painter = painterResource(id = R.drawable.pause),
+                            painter = painterResource(id = R.drawable.ic_pause),
                             contentDescription = "Pause Audio Button"
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = R.drawable.play),
+                            painter = painterResource(id = R.drawable.ic_play),
                             contentDescription = "Play Audio Button"
                         )
                     }
@@ -117,7 +117,7 @@ fun MusicBar(
 
                 IconButton(onClick = { playerVM.onSkipNextClick() }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.skip_next),
+                        painter = painterResource(id = R.drawable.ic_skip_next),
                         contentDescription = "Skip Next Button"
                     )
                 }
@@ -125,12 +125,12 @@ fun MusicBar(
                 IconButton(onClick = { playerVM.onTypeClick() }) {
                     if (playerState.isPlayAll) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ordered),
+                            painter = painterResource(id = R.drawable.ic_state_all),
                             contentDescription = "Toggle Play All Button"
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = R.drawable.single),
+                            painter = painterResource(id = R.drawable.ic_state_one),
                             contentDescription = "Toggle Play All Button"
                         )
                     }
@@ -139,12 +139,12 @@ fun MusicBar(
                 IconButton(onClick = { playerVM.onLoopClick() }) {
                     if (playerState.isLooping) {
                         Icon(
-                            painter = painterResource(id = R.drawable.repeat_on),
+                            painter = painterResource(id = R.drawable.ic_state_repeat_on),
                             contentDescription = "Toggle Loop Audio Button"
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = R.drawable.repeat_off),
+                            painter = painterResource(id = R.drawable.ic_state_repeat_off),
                             contentDescription = "Toggle Loop Audio Button"
                         )
                     }

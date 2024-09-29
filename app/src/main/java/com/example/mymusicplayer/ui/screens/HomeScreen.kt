@@ -42,7 +42,7 @@ fun HomeScreen() {
                     action = { viewModel.onTrackSwipe(index) },
                     icon = {
                         Icon(
-                            painter = painterResource(id = R.drawable.queue),
+                            painter = painterResource(id = R.drawable.ic_queue),
                             contentDescription = "Queue Track Icon",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
