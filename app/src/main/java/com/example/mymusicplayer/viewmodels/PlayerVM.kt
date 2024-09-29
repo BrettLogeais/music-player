@@ -17,7 +17,7 @@ import kotlin.math.max
 @HiltViewModel
 class PlayerVM @Inject constructor(
     private val player: ExoPlayerWrapper
-) : ViewModel() {
+) : ViewModel(), ExoPlayerWrapper.ExoPlayerListener {
 
     private val _playerState = MutableStateFlow(player.playerState)
     val playerState: StateFlow<PlayerState> = _playerState
@@ -31,23 +31,25 @@ class PlayerVM @Inject constructor(
     private val _duration = MutableStateFlow(0L)
     val duration: StateFlow<Long> get() = _duration
 
-    val listener = object : ExoPlayerWrapper.ExoPlayerListener {
-        override fun onPlayerStateChanged(playerState: PlayerState) {
-            _playerState.value = playerState
-        }
+    override fun onPlayerStateChanged(playerState: PlayerState) {
+        _playerState.value = playerState
+    }
 
-        override fun onTrackChanged(mediaItem: MediaItem) {
-            _currentTrack.value = mediaItem
-        }
+    override fun onTrackChanged(mediaItem: MediaItem) {
+        _currentTrack.value = mediaItem
+    }
 
-        override fun onDurationChanged(duration: Long) {
-            _duration.value = duration
-        }
+    override fun onDurationChanged(duration: Long) {
+        _duration.value = duration
+    }
+
+    override fun onPositionChanged(position: Long) {
+        _currentPosition.value = position
     }
 
     init {
         _duration.value = max(0, player.getDuration())
-        player.addListener(listener)
+        player.addListener(this)
         viewModelScope.launch {
             while (true) {
                 _currentPosition.value = player.getPosition()
@@ -99,6 +101,6 @@ class PlayerVM @Inject constructor(
     }
 
     fun onDispose() {
-        player.removeListener(listener)
+        player.removeListener(this)
     }
 }

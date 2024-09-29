@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -17,7 +15,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mymusicplayer.R
-import com.example.mymusicplayer.models.PlayMode
 import com.example.mymusicplayer.viewmodels.PlayerVM
 
 @Preview
@@ -101,7 +97,7 @@ fun MusicBar(
                 IconButton(onClick = { playerVM.onSkipPreviousClick() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.skip_previous),
-                        contentDescription = "Play Audio Button"
+                        contentDescription = "Skip Previous Button"
                     )
                 }
 
@@ -113,7 +109,7 @@ fun MusicBar(
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Filled.PlayArrow,
+                            painter = painterResource(id = R.drawable.play),
                             contentDescription = "Play Audio Button"
                         )
                     }
@@ -122,38 +118,39 @@ fun MusicBar(
                 IconButton(onClick = { playerVM.onSkipNextClick() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.skip_next),
-                        contentDescription = "Play Audio Button"
+                        contentDescription = "Skip Next Button"
                     )
                 }
 
                 IconButton(onClick = { playerVM.onTypeClick() }) {
-                    Icon(
-                        painter = painterResource(
-                            id = when (playerState.mode) {
-                                PlayMode.ONE, PlayMode.ONE_REPEAT ->
-                                    R.drawable.single
-                                PlayMode.ALL, PlayMode.ALL_REPEAT ->
-                                    R.drawable.ordered
-                            }
-                        ),
-                        contentDescription = "Play Type Button"
-                    )
+                    if (playerState.isPlayAll) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ordered),
+                            contentDescription = "Toggle Play All Button"
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.single),
+                            contentDescription = "Toggle Play All Button"
+                        )
+                    }
                 }
 
                 IconButton(onClick = { playerVM.onLoopClick() }) {
-                    Icon(
-                        painter = painterResource(
-                            id = when (playerState.mode) {
-                                PlayMode.ONE_REPEAT, PlayMode.ALL_REPEAT ->
-                                    R.drawable.repeat_on
-                                PlayMode.ONE, PlayMode.ALL ->
-                                    R.drawable.repeat_off
-                            }
-                        ),
-                        contentDescription = "Loop Audio Button"
-                    )
+                    if (playerState.isLooping) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.repeat_on),
+                            contentDescription = "Toggle Loop Audio Button"
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.repeat_off),
+                            contentDescription = "Toggle Loop Audio Button"
+                        )
+                    }
                 }
             }
+
             LinearProgressIndicator(
                 progress = {
                     if (duration > 0L) currentPosition.toFloat() / duration.toFloat()
