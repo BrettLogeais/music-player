@@ -22,6 +22,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
+private const val NOTIFICATION_ID_MEDIA = 1
+
 @AndroidEntryPoint
 class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
 
@@ -33,8 +35,6 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     private lateinit var notificationManager: NotificationManager
 
     private val binder: IBinder = PlayerServiceBinder()
-
-    private var isForegroundService = false
 
     override fun onPlayerStateChanged(playerState: PlayerState) {
         updatePlayback()
@@ -111,9 +111,7 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
             }
         })
 
-        startForeground(1, NotificationUtil.foregroundNotification(this)).also {
-            isForegroundService = true
-        }
+        startForeground(NOTIFICATION_ID_MEDIA, NotificationUtil.foregroundNotification(this))
     }
 
     override fun onBind(intent: Intent?): IBinder {
@@ -121,9 +119,7 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     }
 
     override fun onDestroy() {
-        isForegroundService = false
         player.removeListener(this)
-        player.stop()
         mediaSession.release()
         stopSelf()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -181,7 +177,7 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
 
     private fun updateNotification() {
         notificationManager.notify(
-            0,
+            NOTIFICATION_ID_MEDIA,
             NotificationUtil.notificationMediaPlayer(
                 this,
                 NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken)
