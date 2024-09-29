@@ -37,7 +37,7 @@ import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), ServiceConnection {
+class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var player: ExoPlayerWrapper
@@ -50,18 +50,11 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         }
     }
 
-    private var mediaPlayerService: PlayerService? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         launchPermissionRequest()
 
-        // Bind service
-        bindService(
-            startService(),
-            this,
-            BIND_AUTO_CREATE
-        )
+        startService()
 
         setContent {
             val navController = rememberNavController()
@@ -145,30 +138,22 @@ class MainActivity : ComponentActivity(), ServiceConnection {
         ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun startService(): Intent {
+    private fun startService() {
         val serviceIntent = Intent(this, PlayerService::class.java)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent)
         } else startService(serviceIntent)
+    }
 
-        return serviceIntent
+    private fun stopService() {
+        val serviceIntent = Intent(this, PlayerService::class.java)
+        stopService(serviceIntent)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            unbindService(this)
-        } catch (_: IllegalArgumentException) { }
-    }
-
-    override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
-        val binder = p1 as PlayerService.PlayerServiceBinder
-        mediaPlayerService = binder.getService()
-    }
-
-    override fun onServiceDisconnected(p0: ComponentName?) {
-        mediaPlayerService = null
+        stopService()
     }
 }
 

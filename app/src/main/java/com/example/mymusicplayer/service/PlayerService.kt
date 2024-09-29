@@ -4,7 +4,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.media.MediaMetadata
-import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
@@ -33,8 +32,6 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     private lateinit var mediaSession: MediaSessionCompat
     private lateinit var mediaStyle: NotificationCompat.MediaStyle
     private lateinit var notificationManager: NotificationManager
-
-    private val binder: IBinder = PlayerServiceBinder()
 
     override fun onPlayerStateChanged(playerState: PlayerState) {
         updatePlayback()
@@ -114,8 +111,8 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
         startForeground(NOTIFICATION_ID_MEDIA, NotificationUtil.foregroundNotification(this))
     }
 
-    override fun onBind(intent: Intent?): IBinder {
-        return binder
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
     }
 
     override fun onDestroy() {
@@ -130,12 +127,6 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
         exitProcess(0)
-    }
-
-    inner class PlayerServiceBinder: Binder() {
-        fun getService(): PlayerService {
-            return this@PlayerService
-        }
     }
 
     private fun updateMetadata() {
