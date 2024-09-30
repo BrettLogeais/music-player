@@ -21,12 +21,14 @@ object NotificationUtil {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun createChannel(context: Context) {
-        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH)
+        val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             channel.setAllowBubbles(false)
         }
 
         channel.setBypassDnd(true)
+        channel.setSound(null, null)
+        channel.setShowBadge(false)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
