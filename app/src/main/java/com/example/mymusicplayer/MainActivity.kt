@@ -142,16 +142,6 @@ class MainActivity : ComponentActivity() {
             startForegroundService(serviceIntent)
         } else startService(serviceIntent)
     }
-
-    private fun stopService() {
-        val serviceIntent = Intent(this, PlayerService::class.java)
-        stopService(serviceIntent)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopService()
-    }
 }
 
 @Serializable
