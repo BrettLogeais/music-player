@@ -18,19 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.media3.common.MediaItem
 import com.example.mymusicplayer.R
 import com.example.mymusicplayer.ui.Track
 import com.example.mymusicplayer.ui.composables.SwipeAction
 import com.example.mymusicplayer.ui.composables.SwipeContainer
 import com.example.mymusicplayer.viewmodels.HomeVM
-import com.google.android.exoplayer2.MediaItem
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun HomeScreen() {
-    val viewModel: HomeVM = hiltViewModel()
-
-    val tracks by viewModel.tracks.collectAsState()
+fun HomeScreen(
+    viewModel: HomeVM = hiltViewModel()
+) {
+    val tracks: List<MediaItem> by viewModel.tracks.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxSize(),

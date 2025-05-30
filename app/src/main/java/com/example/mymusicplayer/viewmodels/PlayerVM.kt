@@ -2,10 +2,9 @@ package com.example.mymusicplayer.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.MediaItem
 import com.example.mymusicplayer.models.ExoPlayerWrapper
 import com.example.mymusicplayer.models.PlayerState
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.MediaItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,11 +71,7 @@ class PlayerVM @Inject constructor(
     }
 
     fun onSkipPreviousClick() {
-        if (_currentPosition.value > 5000L) {
-            player.seekTo(C.TIME_UNSET)
-        } else {
-            player.previous()
-        }
+        player.previous()
         player.play()
     }
 

@@ -1,8 +1,8 @@
 package com.example.mymusicplayer.di
 
 import android.content.Context
+import androidx.media3.exoplayer.ExoPlayer
 import com.example.mymusicplayer.models.ExoPlayerWrapper
-import com.google.android.exoplayer2.ExoPlayer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
