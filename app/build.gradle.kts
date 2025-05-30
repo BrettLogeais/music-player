@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.mymusicplayer"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.mymusicplayer"
@@ -68,13 +68,15 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.ui.compose)
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.runtime.livedata)
-    implementation(libs.exoplayer.core)
-    implementation(libs.exoplayer.smoothstreaming)
     kapt(libs.hilt.android.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

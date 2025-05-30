@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
-import com.google.android.exoplayer2.MediaItem
+import androidx.media3.common.MediaItem
 
 @Composable
 fun Track(
