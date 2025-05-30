@@ -1,9 +1,9 @@
 package com.example.mymusicplayer.models
 
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.Player
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import javax.inject.Inject
 
 /**
@@ -241,11 +241,15 @@ class ExoPlayerWrapper @Inject constructor(
 
     fun previous() {
         if (_items.isEmpty()) return
-        if (isPlayingQueue) {
-            isPlayingQueue = false
-            seekTo(_index)
+        if (player.currentPosition > 5000L) {
+            player.seekTo(C.TIME_UNSET)
         } else {
-            seekTo(previousIndex())
+            if (isPlayingQueue) {
+                isPlayingQueue = false
+                seekTo(_index)
+            } else {
+                seekTo(previousIndex())
+            }
         }
     }
 
