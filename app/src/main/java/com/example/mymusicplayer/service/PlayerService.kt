@@ -1,22 +1,21 @@
 package com.example.mymusicplayer.service
 
+import android.app.Notification
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import androidx.annotation.RequiresApi
-import androidx.media.app.NotificationCompat
+import androidx.media3.common.MediaItem
 import com.example.mymusicplayer.models.ExoPlayerWrapper
 import com.example.mymusicplayer.models.NotificationUtil
 import com.example.mymusicplayer.models.PlayerState
-import com.google.android.exoplayer2.MediaItem
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -29,8 +28,8 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     @Inject
     lateinit var player: ExoPlayerWrapper
 
-    private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var mediaStyle: NotificationCompat.MediaStyle
+    private lateinit var mediaSession: MediaSession
+    private lateinit var mediaStyle: Notification.MediaStyle
     private lateinit var notificationManager: NotificationManager
 
     override fun onPlayerStateChanged(playerState: PlayerState) {
@@ -59,11 +58,11 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
         player.addListener(this)
 
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        mediaSession = MediaSessionCompat(this, "MediaPlayerSessionService")
-        mediaStyle =  NotificationCompat.MediaStyle()
+        mediaSession = MediaSession(this, "MediaPlayerSessionService")
+        mediaStyle =  Notification.MediaStyle()
             .setMediaSession(mediaSession.sessionToken)
 
-        mediaSession.setCallback(object : MediaSessionCompat.Callback() {
+        mediaSession.setCallback(object : MediaSession.Callback() {
             @RequiresApi(Build.VERSION_CODES.TIRAMISU)
             override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
                 if (Intent.ACTION_MEDIA_BUTTON == mediaButtonIntent.action) {
@@ -130,7 +129,7 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     }
 
     private fun updateMetadata() {
-        val builder = MediaMetadataCompat.Builder()
+        val builder = MediaMetadata.Builder()
         player.currentTrack?.mediaMetadata?.let { metadata ->
             metadata.title?.let {
                 builder.putString(MediaMetadata.METADATA_KEY_TITLE, it.toString())
@@ -147,20 +146,20 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
     }
 
     private fun updatePlayback() {
-        val builder = PlaybackStateCompat.Builder()
+        val builder = PlaybackState.Builder()
         player.let {
             builder.setState(
-                if (it.playerState.isPlaying) PlaybackStateCompat.STATE_PLAYING
-                else PlaybackStateCompat.STATE_PAUSED,
+                if (it.playerState.isPlaying) PlaybackState.STATE_PLAYING
+                else PlaybackState.STATE_PAUSED,
                 it.getPosition(),
                 1f,
                 SystemClock.elapsedRealtime()
             )
             builder.setActions(
-                PlaybackStateCompat.ACTION_PLAY_PAUSE or
-                        PlaybackStateCompat.ACTION_SKIP_TO_NEXT or
-                        PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS or
-                        PlaybackStateCompat.ACTION_SEEK_TO
+                PlaybackState.ACTION_PLAY_PAUSE or
+                        PlaybackState.ACTION_SKIP_TO_NEXT or
+                        PlaybackState.ACTION_SKIP_TO_PREVIOUS or
+                        PlaybackState.ACTION_SEEK_TO
             )
         }
         mediaSession.setPlaybackState(builder.build())
@@ -171,7 +170,7 @@ class PlayerService : Service(), ExoPlayerWrapper.ExoPlayerListener {
             NOTIFICATION_ID_MEDIA,
             NotificationUtil.notificationMediaPlayer(
                 this,
-                NotificationCompat.MediaStyle().setMediaSession(mediaSession.sessionToken)
+                Notification.MediaStyle().setMediaSession(mediaSession.sessionToken)
             )
         )
     }
