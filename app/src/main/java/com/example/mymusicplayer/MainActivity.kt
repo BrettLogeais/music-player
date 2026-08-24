@@ -87,6 +87,7 @@ class MainActivity : ComponentActivity() {
                                 // Check if the permission is already granted
                                 if (ContextCompat.checkSelfPermission(
                                         applicationContext,
+
                                         Manifest.permission.READ_EXTERNAL_STORAGE
                                     ) != PackageManager.PERMISSION_GRANTED
                                 ) {
@@ -137,10 +138,7 @@ class MainActivity : ComponentActivity() {
 
     private fun startService() {
         val serviceIntent = Intent(this, PlayerService::class.java)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else startService(serviceIntent)
+        startForegroundService(serviceIntent)
     }
 }
 

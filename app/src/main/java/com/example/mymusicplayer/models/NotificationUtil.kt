@@ -8,7 +8,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.mymusicplayer.MainActivity
 import com.example.mymusicplayer.R
 
@@ -19,7 +18,6 @@ object NotificationUtil {
     private const val CHANNEL_ID = "player_notification"
     private const val CHANNEL_NAME = "Media Player"
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun createChannel(context: Context) {
         val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -34,7 +32,6 @@ object NotificationUtil {
         notificationManager.createNotificationChannel(channel)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun foregroundNotification(context: Context): Notification {
         val pi = PendingIntent.getActivity(
             context,
@@ -51,7 +48,6 @@ object NotificationUtil {
             .build()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun notificationMediaPlayer(
         context: Context,
         mediaStyle: MediaStyle
