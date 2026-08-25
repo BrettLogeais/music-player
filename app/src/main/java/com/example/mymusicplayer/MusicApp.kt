@@ -1,9 +1,15 @@
 package com.example.mymusicplayer
 
 import android.app.Application
-import com.example.mymusicplayer.di.AppModule
+import com.example.mymusicplayer.models.NotificationUtil
 import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
 
 @HiltAndroidApp
-class MusicApp : Application()
+class MusicApp : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+
+        NotificationUtil.createChannel(this)
+    }
+}

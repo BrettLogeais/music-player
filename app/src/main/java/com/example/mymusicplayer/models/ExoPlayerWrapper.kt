@@ -14,11 +14,7 @@ class ExoPlayerWrapper @Inject constructor(
     val player: ExoPlayer
 ) {
 
-    var playerState = PlayerState(
-        mode = PlayMode.ONE,
-        isShuffled = false,
-        isPlaying = false
-    )
+    var playerState = PlayerState()
 
     private var isPlayingQueue = false
 
@@ -35,6 +31,7 @@ class ExoPlayerWrapper @Inject constructor(
         fun onPlayerStateChanged(playerState: PlayerState)
         fun onTrackChanged(mediaItem: MediaItem)
         fun onDurationChanged(duration: Long)
+        fun onPositionChanged(position: Long)
     }
 
     fun addListener(listener: ExoPlayerListener) {
@@ -57,6 +54,10 @@ class ExoPlayerWrapper @Inject constructor(
         listeners.forEach { it.onDurationChanged(duration) }
     }
 
+    private fun notifyPositionChanged(duration: Long) {
+        listeners.forEach { it.onPositionChanged(duration) }
+    }
+
     init {
         player.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -66,6 +67,7 @@ class ExoPlayerWrapper @Inject constructor(
                 when (state) {
                     Player.STATE_READY -> {
                         println("Player Ready")
+                        notifyPlayerStateChanged(playerState)
                         notifyDurationChanged(player.duration)
                     }
                     Player.STATE_BUFFERING -> {
@@ -79,13 +81,23 @@ class ExoPlayerWrapper @Inject constructor(
                         when {
                             _queue.isNotEmpty() ->
                                 next()
-                            playerState.mode == PlayMode.ALL_REPEAT ->
+                            playerState.isLooping ->
                                 next()
-                            playerState.mode == PlayMode.ALL && _index < _items.size - 1 ->
+                            playerState.isPlayAll && _index < _items.size - 1 ->
                                 next()
                             else -> pause()
                         }
                     }
+                }
+            }
+
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int
+            ) {
+                if (reason == Player.DISCONTINUITY_REASON_AUTO_TRANSITION) {
+                    notifyPositionChanged(newPosition.positionMs)
                 }
             }
         })
@@ -94,9 +106,10 @@ class ExoPlayerWrapper @Inject constructor(
     private fun restart() {
         player.prepare()
         if (!playerState.isPlaying) {
-            when (playerState.mode) {
-                PlayMode.ONE, PlayMode.ONE_REPEAT -> seekTo(C.TIME_UNSET)
-                PlayMode.ALL, PlayMode.ALL_REPEAT -> seekTo(0)
+            if (playerState.isPlayAll) {
+                seekTo(0)
+            } else {
+                seekTo(C.TIME_UNSET)
             }
         }
     }
@@ -118,20 +131,24 @@ class ExoPlayerWrapper @Inject constructor(
         notifyPlayerStateChanged(playerState)
     }
 
+    fun stop() {
+        player.stop()
+    }
+
     fun toggleLooping() {
-        val mode = playerState.mode.toggleModeRepeat()
-        updatePlayMode(playerState.copy(mode = mode))
+        updatePlayMode(playerState.copy(isLooping = !playerState.isLooping))
     }
 
     fun nextType() {
-        val mode = playerState.mode.toggleModeType()
-        updatePlayMode(playerState.copy(mode = mode))
+        updatePlayMode(playerState.copy(isPlayAll = !playerState.isPlayAll))
     }
 
     private fun updatePlayMode(playerState: PlayerState) {
-        when (playerState.mode) {
-            PlayMode.ONE_REPEAT -> player.repeatMode = Player.REPEAT_MODE_ONE
-            else -> player.repeatMode = Player.REPEAT_MODE_OFF
+        when {
+            !playerState.isPlayAll && playerState.isLooping ->
+                player.repeatMode = Player.REPEAT_MODE_ONE
+            else ->
+                player.repeatMode = Player.REPEAT_MODE_OFF
         }
 
         this.playerState = playerState
