@@ -11,14 +11,22 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -27,9 +35,11 @@ import com.example.mymusicplayer.models.ExoPlayerWrapper
 import com.example.mymusicplayer.service.PlayerService
 import com.example.mymusicplayer.ui.MusicBar
 import com.example.mymusicplayer.ui.screens.HomeScreen
+import com.example.mymusicplayer.ui.screens.RemoteTracksScreen
 import com.example.mymusicplayer.ui.screens.TrackScreen
 import com.example.mymusicplayer.viewmodels.TopBar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
@@ -56,51 +66,99 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            AppTheme {
-                Scaffold(
-                    topBar = { TopBar() },
-                    bottomBar = {
-                        MusicBar(
-                            modifier = Modifier.padding(12.dp)
-                        ) { navController.safeNavigate(Track) }
-                    }
-                ) { paddingValues ->
+            val drawerState = rememberDrawerState(
+                initialValue = DrawerValue.Closed
+            )
+            val scope = rememberCoroutineScope()
 
-                    val permissionLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.RequestPermission()
-                    ) { isGranted: Boolean ->
-                        if (isGranted) {
-                            // Permission is granted
-                        } else {
-                            // Handle permission denial
+            AppTheme {
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        ModalDrawerSheet {
+                            NavigationDrawerItem(
+                                label = { Text("Local") },
+                                selected = false,
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.close()
+                                        navController.safeNavigate(Home)
+                                    }
+                                }
+                            )
+                            NavigationDrawerItem(
+                                label = { Text("Remote") },
+                                selected = false,
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.close()
+                                        navController.safeNavigate(Remote)
+                                    }
+                                }
+                            )
                         }
                     }
-
-                    NavHost(
-                        navController = navController,
-                        startDestination = Home,
-                        modifier = Modifier.padding(paddingValues = paddingValues)
-                    ) {
-                        composable<Home> {
-                            HomeScreen()
-                            LaunchedEffect(Unit) {
-                                // Check if the permission is already granted
-                                if (ContextCompat.checkSelfPermission(
-                                        applicationContext,
-
-                                        Manifest.permission.READ_EXTERNAL_STORAGE
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    // Request the permission
-                                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                                } else {
-                                    // Permission already granted
-                                    Log.d("Console", "Permission already granted")
+                ) {
+                    Scaffold(
+                        topBar = {
+                            TopBar(
+                                navController = navController,
+                                onMenuClick = {
+                                    scope.launch {
+                                        drawerState.open()
+                                    }
                                 }
+                            )
+                        },
+                        bottomBar = {
+                            MusicBar(
+                                modifier = Modifier.padding(12.dp),
+                                onTrackClick = {
+                                    navController.safeNavigate(Track)
+                                }
+                            )
+                        }
+                    ) { paddingValues ->
+
+                        val permissionLauncher = rememberLauncherForActivityResult(
+                            contract = ActivityResultContracts.RequestPermission()
+                        ) { isGranted: Boolean ->
+                            if (isGranted) {
+                                // Permission is granted
+                            } else {
+                                // Handle permission denial
                             }
                         }
-                        composable<Track> {
-                            TrackScreen()
+
+                        NavHost(
+                            navController = navController,
+                            startDestination = Home,
+                            modifier = Modifier.padding(paddingValues = paddingValues)
+                        ) {
+                            composable<Home> {
+                                HomeScreen()
+                                LaunchedEffect(Unit) {
+                                    // Check if the permission is already granted
+                                    if (ContextCompat.checkSelfPermission(
+                                            applicationContext,
+
+                                            Manifest.permission.READ_EXTERNAL_STORAGE
+                                        ) != PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        // Request the permission
+                                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                    } else {
+                                        // Permission already granted
+                                        Log.d("Console", "Permission already granted")
+                                    }
+                                }
+                            }
+                            composable<Remote> {
+                                RemoteTracksScreen()
+                            }
+                            composable<Track> {
+                                TrackScreen()
+                            }
                         }
                     }
                 }
@@ -110,8 +168,12 @@ class MainActivity : ComponentActivity() {
 
     private fun NavController.safeNavigate(route: Any) {
         this.currentDestination?.let { destination ->
-            if (!destination.hasRoute(route::class))
-                this.navigate(route)
+            if (!destination.hasRoute(route::class)) {
+                this.navigate(route) {
+                    popUpTo(graph.findStartDestination().id)
+                    launchSingleTop = true
+                }
+            }
         }
     }
 
@@ -144,6 +206,9 @@ class MainActivity : ComponentActivity() {
 
 @Serializable
 object Home
+
+@Serializable
+object Remote
 
 @Serializable
 object Track

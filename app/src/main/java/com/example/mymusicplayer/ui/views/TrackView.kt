@@ -1,31 +1,23 @@
-package com.example.mymusicplayer.ui
+package com.example.mymusicplayer.ui.views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontStyle
 import androidx.media3.common.MediaItem
 
 @Composable
-fun Track(
+fun TrackView(
     mediaItem: MediaItem,
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Text(
             text = mediaItem.mediaMetadata.title.toString(),
             modifier = Modifier
-        )
-        Text(
-            text = mediaItem.mediaMetadata.artist.toString(),
-            fontStyle = FontStyle.Italic,
-            modifier = Modifier.align(Alignment.TopEnd)
         )
     }
 }

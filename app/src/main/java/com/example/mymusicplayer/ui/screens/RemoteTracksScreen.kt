@@ -20,22 +20,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MediaItem
 import com.example.mymusicplayer.R
-import com.example.mymusicplayer.ui.views.TrackView
 import com.example.mymusicplayer.ui.composables.SwipeAction
 import com.example.mymusicplayer.ui.composables.SwipeContainer
-import com.example.mymusicplayer.viewmodels.HomeVM
+import com.example.mymusicplayer.ui.views.TrackView
+import com.example.mymusicplayer.viewmodels.RemoteTracksVM
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun HomeScreen(
-    viewModel: HomeVM = hiltViewModel(),
+fun RemoteTracksScreen(
+    viewModel: RemoteTracksVM = hiltViewModel(),
 ) {
     val tracks by viewModel.tracks.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        LazyColumn {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+        ) {
             itemsIndexed(tracks) { index, item ->
                 val action = SwipeAction<MediaItem>(
                     direction = DismissDirection.StartToEnd,
@@ -48,7 +50,6 @@ fun HomeScreen(
                         )
                     },
                 )
-
                 SwipeContainer(
                     item = item,
                     action = action,

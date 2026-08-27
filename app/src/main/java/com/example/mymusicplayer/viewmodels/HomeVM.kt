@@ -9,17 +9,17 @@ import com.example.mymusicplayer.models.ExoPlayerWrapper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeVM @Inject constructor(
     @ApplicationContext private val appContext: Context,
-    private val player: ExoPlayerWrapper
+    private val player: ExoPlayerWrapper,
 ): ViewModel() {
 
     private val _tracks = MutableStateFlow<List<MediaItem>>(listOf())
-    val tracks: StateFlow<List<MediaItem>> get() = _tracks
+    val tracks = _tracks.asStateFlow()
 
     init {
         getMusic()

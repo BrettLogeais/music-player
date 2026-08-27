@@ -12,18 +12,36 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.mymusicplayer.Home
 import com.example.mymusicplayer.R
+import com.example.mymusicplayer.Remote
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(playerVM: PlayerVM = hiltViewModel()) {
+fun TopBar(
+    navController: NavController,
+    playerVM: PlayerVM = hiltViewModel(),
+    onMenuClick: () -> Unit,
+) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destination = backStackEntry?.destination
+
+    val title = when {
+        destination?.hasRoute<Home>() == true -> "Local"
+        destination?.hasRoute<Remote>() == true -> "Remote"
+        else -> ""
+    }
+
     TopAppBar(
         title = {
-            Text(text = "Title")
+            Text(text = title)
         },
         navigationIcon = {
             IconButton(
-                onClick = {  }
+                onClick = onMenuClick
             ) {
                 Icon(
                     imageVector = Icons.Filled.Menu,
