@@ -31,13 +31,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.compose.AppTheme
-import com.example.mymusicplayer.models.ExoPlayerWrapper
-import com.example.mymusicplayer.service.PlayerService
-import com.example.mymusicplayer.ui.MusicBar
-import com.example.mymusicplayer.ui.screens.HomeScreen
-import com.example.mymusicplayer.ui.screens.RemoteTracksScreen
-import com.example.mymusicplayer.ui.screens.TrackScreen
-import com.example.mymusicplayer.viewmodels.TopBar
+import com.example.mymusicplayer.player.playback.ExoPlayerWrapper
+import com.example.mymusicplayer.player.service.PlayerService
+import com.example.mymusicplayer.feature.track.presentation.MusicBar
+import com.example.mymusicplayer.feature.playlist.presentation.HomeScreen
+import com.example.mymusicplayer.feature.playlist.presentation.RemoteTracksScreen
+import com.example.mymusicplayer.feature.track.TrackScreen
+import com.example.mymusicplayer.core.ui.component.TopBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
                                 onClick = {
                                     scope.launch {
                                         drawerState.close()
-                                        navController.safeNavigate(Home)
+                                        navController.safeNavigate(Local)
                                     }
                                 }
                             )
@@ -132,10 +132,10 @@ class MainActivity : ComponentActivity() {
 
                         NavHost(
                             navController = navController,
-                            startDestination = Home,
+                            startDestination = Local,
                             modifier = Modifier.padding(paddingValues = paddingValues)
                         ) {
-                            composable<Home> {
+                            composable<Local> {
                                 HomeScreen()
                                 LaunchedEffect(Unit) {
                                     // Check if the permission is already granted
@@ -205,7 +205,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Serializable
-object Home
+object Local
 
 @Serializable
 object Remote

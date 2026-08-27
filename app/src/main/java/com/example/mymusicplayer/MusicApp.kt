@@ -1,7 +1,7 @@
 package com.example.mymusicplayer
 
 import android.app.Application
-import com.example.mymusicplayer.models.NotificationUtil
+import com.example.mymusicplayer.player.notification.NotificationUtil
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

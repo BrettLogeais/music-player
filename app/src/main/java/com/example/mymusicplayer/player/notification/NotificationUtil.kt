@@ -1,0 +1,64 @@
+package com.example.mymusicplayer.player.notification
+
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import com.example.mymusicplayer.MainActivity
+import com.example.mymusicplayer.R
+
+object NotificationUtil {
+
+    private const val REQUEST_CODE = 10001
+
+    private const val CHANNEL_ID = "player_notification"
+    private const val CHANNEL_NAME = "Media Player"
+
+    fun createChannel(context: Context) {
+        val channel =
+            NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            channel.setAllowBubbles(false)
+        }
+
+        channel.setBypassDnd(true)
+        channel.setSound(null, null)
+        channel.setShowBadge(false)
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    fun foregroundNotification(context: Context): Notification {
+        val pi = PendingIntent.getActivity(
+            context,
+            REQUEST_CODE,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        return Notification.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setOngoing(true)
+            .setAutoCancel(false)
+            .setContentIntent(pi)
+            .build()
+    }
+
+    fun notificationMediaPlayer(
+        context: Context,
+        mediaStyle: Notification.MediaStyle
+    ): Notification {
+
+        return Notification.Builder(context, CHANNEL_ID)
+            .setStyle(mediaStyle)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setOngoing(true)
+            .setAutoCancel(false)
+            .setOnlyAlertOnce(true)
+            .build()
+    }
+}
